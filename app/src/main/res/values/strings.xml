@@ -1,4 +1,11 @@
 <resources>
     <string name="app_name">PopularMovies</string>
     <string name="movie_poster_content_description">Poster of the movie</string>
+    <string name="action_sort_ratings">Order by ratings</string>
+    <string name="action_sort_popularity">Order by popularity</string>
+
+    <string name="error_message_parsing_json">Movie data could not be read!</string>
+    <string name="error_message_connecting_to_api">
+        An error occurred while connecting to themovieDB-API!\nPlease check your network connection!
+    </string>
 </resources>
