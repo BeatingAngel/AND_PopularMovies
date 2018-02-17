@@ -8,9 +8,9 @@ package com.goldencrow.android.popularmovies;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.goldencrow.android.popularmovies.entities.Movie;
 import com.squareup.picasso.Picasso;
@@ -59,7 +59,8 @@ public class DetailActivity extends AppCompatActivity {
 
             mPlotSynopsisTv.setText(movie.getOverview());
         } else {
-            Toast.makeText(this, "Movie not found!", Toast.LENGTH_LONG).show();
+            mMovieTitleTv.setText(getString(R.string.error_movie_not_found));
+            mMoviePosterIv.setVisibility(View.INVISIBLE);
         }
     }
 }
