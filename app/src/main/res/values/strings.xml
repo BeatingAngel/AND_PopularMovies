@@ -1,11 +1,19 @@
 <resources>
     <string name="app_name">PopularMovies</string>
-    <string name="movie_poster_content_description">Poster of the movie</string>
-    <string name="action_sort_ratings">Order by ratings</string>
-    <string name="action_sort_popularity">Order by popularity</string>
 
+    <!-- ===== FOR WIDGETS ===== -->
+    <string name="movie_poster_content_description">Poster of the movie</string>
+    <string name="retry">Retry</string>
+
+    <!-- ===== MENU ITEMS ===== -->
+    <string name="action_sort_ratings">Order by ratings (desc)</string>
+    <string name="action_sort_popularity">Order by popularity (desc)</string>
+
+    <!-- ===== TEXT MESSAGES ===== -->
     <string name="error_message_parsing_json">Movie data could not be read!</string>
     <string name="error_message_connecting_to_api">
         An error occurred while connecting to themovieDB-API!\nPlease check your network connection!
     </string>
+    <string name="background_movie_title">background for the movie title</string>
+    <string name="vote_average">Rating: %1$.1f/10</string>
 </resources>

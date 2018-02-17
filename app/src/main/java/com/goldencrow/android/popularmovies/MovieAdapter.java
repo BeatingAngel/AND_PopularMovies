@@ -18,13 +18,36 @@ import com.squareup.picasso.Picasso;
 
 public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHolder> {
 
-    private Context mContext;
+    private final Context mContext;
+    private final MovieOnClickHandler mClickHandler;
+
     private Movie[] mMovies;
 
-    MovieAdapter(@NonNull Context context) {
-        mContext = context;
+    /**
+     * the interface which handles onClicks.
+     */
+    public interface MovieOnClickHandler {
+        void onClick(Movie movie);
     }
 
+    /**
+     * Constructor for the Adapter.
+     *
+     * @param context       the context where the list is located. (required)
+     * @param clickHandler  the clickHandler which contains the logic to handle the click.
+     */
+    MovieAdapter(@NonNull Context context, MovieOnClickHandler clickHandler) {
+        mContext = context;
+        mClickHandler = clickHandler;
+    }
+
+    /**
+     * Create a custom view for the movie poster.
+     *
+     * @param parent    the parent of the view.
+     * @param viewType  viewType to differentiate between custom views. (not used)
+     * @return          a new MovieViewHolder.
+     */
     @Override
     public MovieViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
 
@@ -36,34 +59,72 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
         return new MovieViewHolder(view);
     }
 
+    /**
+     * populate the view with actual data.
+     *
+     * @param holder    the view which will be populated with data.
+     * @param position  position of the item in the list.
+     */
     @Override
     public void onBindViewHolder(MovieViewHolder holder, int position) {
         Movie movie = mMovies[position];
 
         Picasso.with(mContext)
-                .load("http://image.tmdb.org/t/p/w185//" + movie.getPosterPath())
+                .load(MainActivity.MOVIE_POSTER_BASE_PATH + movie.getPosterPath())
                 .error(R.drawable.ic_launcher_background)
                 .into(holder.mMoviePosterIv);
     }
 
+    /**
+     * Returns the size of the list.
+     *
+     * @return the size of the list.
+     */
     @Override
     public int getItemCount() {
         return mMovies == null ? 0 : mMovies.length;
     }
 
+    /**
+     * changes the displayed data to the new provided movies.
+     *
+     * @param movies    to display in the grid.
+     */
     void setMovieData(Movie[] movies) {
         mMovies = movies;
         notifyDataSetChanged();
     }
 
-    class MovieViewHolder extends RecyclerView.ViewHolder {
+    /**
+     * custom viewHolder for a list item.
+     */
+    class MovieViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
-        ImageView mMoviePosterIv;
+        final ImageView mMoviePosterIv;
 
+        /**
+         * the constructor for the custom ViewHolder.
+         *
+         * @param itemView  the view where the widgets are displayed.
+         */
         MovieViewHolder(View itemView) {
             super(itemView);
 
             mMoviePosterIv = itemView.findViewById(R.id.movie_poster_iv);
+
+            itemView.setOnClickListener(this);
+        }
+
+        /**
+         * handles the click on a movie poster.
+         * It uses the provided method from the constructor for the click.
+         *
+         * @param view  the view which was clicked on.
+         */
+        @Override
+        public void onClick(View view) {
+            int position = getAdapterPosition();
+            mClickHandler.onClick(mMovies[position]);
         }
     }
 }

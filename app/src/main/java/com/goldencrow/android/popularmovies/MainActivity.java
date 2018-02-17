@@ -5,6 +5,7 @@
 
 package com.goldencrow.android.popularmovies;
 
+import android.content.Intent;
 import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -17,12 +18,13 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.goldencrow.android.popularmovies.entities.Movie;
 import com.google.gson.Gson;
@@ -33,7 +35,17 @@ import org.json.JSONObject;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements MovieAdapter.MovieOnClickHandler {
+
+    // =====     KEYS      =====
+    private static final String STATE_SORT_ORDER_KEY = "sortOrder";
+    private static final String MOVIE_LIST_JSON_KEY = "results";
+
+    // =====    VALUES     =====
+    private static final int GRID_SPAN_SIZE = 2;
+
+    // ===== API URI VALUES =====
+    public static final String MOVIE_POSTER_BASE_PATH = "http://image.tmdb.org/t/p/w185//";
 
     private static final String API_SCHEME = "http";
     private static final String API_AUTHORITY = "api.themoviedb.org";
@@ -45,8 +57,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String API_KEY
             = "";  // insert API-KEY from themoviedb.org HERE
 
-    private static final String MOVIE_LIST_JSON_KEY = "results";
-
+    // =====     WIDGETS      =====
     @BindView(R.id.movie_list_rv)
     RecyclerView mMoviesListRv;
     @BindView(R.id.loading_indicator_pb)
@@ -56,9 +67,10 @@ public class MainActivity extends AppCompatActivity {
     @BindView(R.id.reload_btn)
     Button mReloadBtn;
 
+    // =====     OTHER      =====
     private MovieAdapter mAdapter;
     private RequestQueue mQueue;
-    private String mLoadingPath;
+    private String mLoadingPath = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,19 +88,37 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        //This is for later usage in the DetailActivity:
-        //Locale current = getResources().getConfiguration().locale;
-
         // Instantiate the RequestQueue.
         mQueue = Volley.newRequestQueue(this);
 
+        // if the device is rotated, then the sortOrder should stay the same!
+        if (savedInstanceState != null) {
+            mLoadingPath = savedInstanceState.getString(STATE_SORT_ORDER_KEY, POPULAR_API_PATH);
+        } else {
+            mLoadingPath = POPULAR_API_PATH;
+        }
         showLoading();
-
-        // show order by popularity as default.
-        mLoadingPath = POPULAR_API_PATH;
         queueStringRequest(mLoadingPath);
     }
 
+    /**
+     * Save the current sort-order to reapply it when the device was rotated.
+     *
+     * @param outState              the bundle to save the data into.
+     */
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putString(STATE_SORT_ORDER_KEY, mLoadingPath);
+
+        super.onSaveInstanceState(outState);
+    }
+
+    /**
+     * Use our custom Menu.
+     *
+     * @param menu  the menu.
+     * @return      TRUE if it was successful.
+     */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
@@ -98,6 +128,13 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
+    /**
+     * Handles a selected MenuOption.
+     * For example: Change the title of the sort order and load data.
+     *
+     * @param item  the clicked MenuItem.
+     * @return      TRUE if it was successful.
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
 
@@ -111,6 +148,24 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    /**
+     * Changes the activity to the detail activity of the clicked movie.
+     *
+     * @param movie     the selected movie.
+     */
+    @Override
+    public void onClick(Movie movie) {
+        Intent intent = new Intent(this, DetailActivity.class);
+        intent.putExtra(DetailActivity.INTENT_EXTRA_MOVIE_KEY, movie);
+        startActivity(intent);
+    }
+
+    /**
+     * Displaying a error message in the center of the screen
+     * with a error message text and button to retry.
+     *
+     * @param message   The message to display (String-Resource-ID)
+     */
     private void showErrorMessage(int message) {
         if (mMoviesListRv.getVisibility() == View.VISIBLE) {
             mMoviesListRv.setVisibility(View.INVISIBLE);
@@ -123,6 +178,10 @@ public class MainActivity extends AppCompatActivity {
         mErrorMessageTf.setText(message);
     }
 
+    /**
+     * Hide everything except the LoadingIndicator
+     * to show that the program is loading.
+     */
     private void showLoading() {
         mLoadingIndicatorPb.setVisibility(View.VISIBLE);
         mMoviesListRv.setVisibility(View.INVISIBLE);
@@ -132,6 +191,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Hide everything except the RecyclerView which display the movies.
+     */
     private void showData() {
         mLoadingIndicatorPb.setVisibility(View.INVISIBLE);
         mMoviesListRv.setVisibility(View.VISIBLE);
@@ -141,6 +203,12 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Change to title of the MenuItem and remember which SortOrder
+     * to sort by next time.
+     *
+     * @param menuItem  the selected MenuItem.
+     */
     private void toggleSortOrder(MenuItem menuItem) {
         if (mLoadingPath.equals(POPULAR_API_PATH)) {
             mLoadingPath = TOP_RATED_API_PATH;
@@ -151,19 +219,30 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Performs the API-request asynchronously and displays to newly retrieved data
+     * in the Grid.
+     *
+     * Libraries used: Volley and Gson.
+     * Volley code is shorter than a code of an AsyncTask with a request in it.
+     * Volley can also provide the API-result as a JSON-Object and handle errors.
+     * Gson can parse a Json into an Object. It lessens the amount of code.
+     *
+     * @param apiPath   the api path to the selected sort-order.
+     */
     private void queueStringRequest(String apiPath) {
         String apiUri = getApiUri(apiPath);
 
-        StringRequest request = new StringRequest(
+        JsonObjectRequest request = new JsonObjectRequest(
                 Request.Method.GET,
                 apiUri,
-                new Response.Listener<String>() {
+                null,
+                new Response.Listener<JSONObject>() {
                     @Override
-                    public void onResponse(String jsonResponse) {
+                    public void onResponse(JSONObject jsonResponse) {
                         Gson gson = new Gson();
                         try {
-                            JSONObject result = new JSONObject(jsonResponse);
-                            String jsonArrayMovies = result.get(MOVIE_LIST_JSON_KEY).toString();
+                            String jsonArrayMovies = jsonResponse.get(MOVIE_LIST_JSON_KEY).toString();
 
                             Movie[] movies = gson.fromJson(jsonArrayMovies, Movie[].class);
 
@@ -172,7 +251,6 @@ public class MainActivity extends AppCompatActivity {
                             showData();
                         } catch (JSONException e) {
                             showErrorMessage(R.string.error_message_parsing_json);
-                            e.printStackTrace();
                         }
                     }
                 },
@@ -187,16 +265,25 @@ public class MainActivity extends AppCompatActivity {
         mQueue.add(request);
     }
 
+    /**
+     * set up the RecyclerView with empty data.
+     */
     private void initializeRecyclerView() {
-        GridLayoutManager layoutManager = new GridLayoutManager(this, 2);
+        GridLayoutManager layoutManager = new GridLayoutManager(this, GRID_SPAN_SIZE);
 
-        mAdapter = new MovieAdapter(this);
+        mAdapter = new MovieAdapter(this, this);
         mMoviesListRv.setAdapter(mAdapter);
 
         mMoviesListRv.setLayoutManager(layoutManager);
         mMoviesListRv.setHasFixedSize(true);
     }
 
+    /**
+     * builds the Uri to themoviedb.org-API.
+     *
+     * @param apiPath   the api path to the selected sort-order.
+     * @return          the built uri as string.
+     */
     private String getApiUri(String apiPath) {
         Uri.Builder builder = new Uri.Builder();
         builder.scheme(API_SCHEME)
