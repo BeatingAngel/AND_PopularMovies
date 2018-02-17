@@ -8,6 +8,8 @@ package com.goldencrow.android.popularmovies;
 import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -38,10 +40,12 @@ public class MainActivity extends AppCompatActivity {
     private static final String API_KEY
             = "";  // insert API-KEY from themoviedb.org HERE
 
+    private static final String MOVIE_LIST_JSON_KEY = "results";
+
     private Movie[] mMovies;
 
-    @BindView(R.id.json_tf)
-    TextView mJsonTv;
+    @BindView(R.id.movie_list_rv)
+    RecyclerView mMoviesListRv;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,9 +70,11 @@ public class MainActivity extends AppCompatActivity {
                         Gson gson = new Gson();
                         try {
                             JSONObject result = new JSONObject(jsonResponse);
-                            String jsonArrayMovies = result.get("results").toString();
+                            String jsonArrayMovies = result.get(MOVIE_LIST_JSON_KEY).toString();
 
                             mMovies = gson.fromJson(jsonArrayMovies, Movie[].class);
+
+                            initializeRecyclerView();
                         } catch (JSONException e) {
                             Toast.makeText(
                                     MainActivity.this,
@@ -90,6 +96,18 @@ public class MainActivity extends AppCompatActivity {
 
         // Add the request to the RequestQueue.
         queue.add(stringRequest);
+    }
+
+    private void initializeRecyclerView() {
+        GridLayoutManager layoutManager = new GridLayoutManager(this, 2);
+
+        MovieAdapter mAdapter = new MovieAdapter(this);
+        mMoviesListRv.setAdapter(mAdapter);
+
+        mMoviesListRv.setLayoutManager(layoutManager);
+        mMoviesListRv.setHasFixedSize(true);
+
+        mAdapter.setMovieData(mMovies);
     }
 
     private String getApiUri(String apiPath) {
