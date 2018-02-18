@@ -45,6 +45,10 @@ public class Movie implements Parcelable {
         }
     };
 
+    public int getId() {
+        return id;
+    }
+
     public double getVoteAverage() {
         return vote_average;
     }

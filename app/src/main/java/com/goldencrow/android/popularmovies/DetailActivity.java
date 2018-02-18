@@ -6,6 +6,7 @@
 package com.goldencrow.android.popularmovies;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.support.design.widget.AppBarLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -13,13 +14,27 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.LinearLayout.LayoutParams;
 import android.widget.TextView;
 import android.support.v7.widget.Toolbar;
+import android.widget.Toast;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
 import com.goldencrow.android.popularmovies.entities.Movie;
+import com.goldencrow.android.popularmovies.entities.Trailer;
+import com.google.gson.Gson;
 import com.squareup.picasso.Picasso;
 
 import net.opacapp.multilinecollapsingtoolbar.CollapsingToolbarLayout;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -27,6 +42,7 @@ import butterknife.ButterKnife;
 public class DetailActivity extends AppCompatActivity {
 
     public static final String INTENT_EXTRA_MOVIE_KEY = "movie";
+    public static final String TRAILER_JSON_KEY = "results";
 
     @BindView(R.id.movie_poster_iv)
     ImageView mMoviePosterIv;
@@ -36,6 +52,8 @@ public class DetailActivity extends AppCompatActivity {
     TextView mAverageVoteTv;
     @BindView(R.id.plot_synopsis_tv)
     TextView mPlotSynopsisTv;
+    @BindView(R.id.trailer_container_ll)
+    LinearLayout mTrailerContainerLl;
 
     @BindView(R.id.toolbar)
     Toolbar mToolbar;
@@ -48,12 +66,17 @@ public class DetailActivity extends AppCompatActivity {
 
     private Menu menu;
 
+    private RequestQueue mQueue;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detail);
 
         ButterKnife.bind(this);
+
+        // Instantiate the RequestQueue.
+        mQueue = Volley.newRequestQueue(this);
 
         materializeAppBar();
 
@@ -79,12 +102,149 @@ public class DetailActivity extends AppCompatActivity {
             mAverageVoteTv.setText(averageVoteString);
 
             mPlotSynopsisTv.setText(movie.getOverview());
+
+            queueJsonRequest(movie.getId(), "videos");
         } else {
             mCollapsingToolbarLayout.setTitle(getString(R.string.error_movie_not_found));
             mMoviePosterIv.setVisibility(View.INVISIBLE);
         }
     }
 
+    /**
+     * Request additional information from a movie and handle/display the result
+     * of the API-request (async).
+     *
+     * @param movieId   the movieId from which more information is needed.
+     * @param category  the type of information which is needed.
+     */
+    private void queueJsonRequest(int movieId, final String category) {
+        String apiUri = getApiUri(movieId, category);
+
+        JsonObjectRequest request = new JsonObjectRequest(
+                Request.Method.GET,
+                apiUri,
+                null,
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject jsonResponse) {
+                        Gson gson = new Gson();
+                        try {
+                            String jsonArrayMovies = jsonResponse.get(TRAILER_JSON_KEY).toString();
+                            if (category.toLowerCase().equals("videos")) {
+                                Trailer[] trailers = gson.fromJson(jsonArrayMovies, Trailer[].class);
+                                displayTrailers(trailers);
+                            }
+                        } catch (JSONException e) {
+                            // Error while parsing Json.
+                            Toast.makeText(
+                                    DetailActivity.this,
+                                    "Error while parsing!",
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        // Video trailers could not be loaded
+                        Toast.makeText(
+                                DetailActivity.this,
+                                "Could not retrieve data!",
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+        // Add the request to the RequestQueue.
+        mQueue.add(request);
+    }
+
+    /**
+     * Display all trailers in a Linear Layout on the screen.
+     *
+     * @param trailers  the list of all trailers.
+     */
+    private void displayTrailers(Trailer[] trailers) {
+        LinearLayout trailerList = new LinearLayout(DetailActivity.this);
+        trailerList.setOrientation(LinearLayout.VERTICAL);
+        trailerList.setLayoutParams(new LayoutParams(
+                LayoutParams.MATCH_PARENT,
+                LayoutParams.WRAP_CONTENT));
+
+        for (Trailer trailer : trailers) {
+            ImageView trailerPreviewIv = createTrailer(trailer);
+
+            TextView trailerNameTv = new TextView(DetailActivity.this);
+            trailerNameTv.setLayoutParams(new LayoutParams(
+                    LayoutParams.MATCH_PARENT,
+                    LayoutParams.WRAP_CONTENT));
+            trailerNameTv.setText(trailer.getName());
+
+            trailerList.addView(trailerNameTv);
+            trailerList.addView(trailerPreviewIv);
+        }
+
+        mTrailerContainerLl.addView(trailerList);
+    }
+
+    /**
+     * Creates a ImageView Widget which plays the trailer in YouTube with a click.
+     *
+     * @param trailer   the trailer-object from which a ImageView will be generated.
+     * @return          the imageView widget.
+     */
+    private ImageView createTrailer(final Trailer trailer) {
+        ImageView trailerPreviewIv =
+                new ImageView(DetailActivity.this);
+        trailerPreviewIv.setLayoutParams(new LayoutParams(
+                LayoutParams.MATCH_PARENT,
+                LayoutParams.WRAP_CONTENT));
+        trailerPreviewIv.setAdjustViewBounds(true);
+        trailerPreviewIv.setPadding(0,0,0, 25);
+
+        trailerPreviewIv.setImageResource(R.drawable.ic_launcher_foreground);
+
+        if (trailer.getSite().toLowerCase().equals("youtube")) {
+            Picasso.with(DetailActivity.this)
+                    .load("https://img.youtube.com/vi/"
+                            + trailer.getKey() + "/hqdefault.jpg")
+                    .into(trailerPreviewIv);
+
+            trailerPreviewIv.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Uri trailerUri = Uri.parse("http://www.youtube.com/embed/" + trailer.getKey());
+
+                    Intent youTubeIntent = new Intent(Intent.ACTION_VIEW, trailerUri);
+
+                    if (youTubeIntent.resolveActivity(getPackageManager()) != null) {
+                        startActivity(youTubeIntent);
+                    }
+                }
+            });
+        }
+
+        return trailerPreviewIv;
+    }
+
+    /**
+     * builds the Uri to themoviedb.org-API.
+     *
+     * @param movieId   the ID from the selected movie.
+     * @param category  the info from the movie (reviews/videos).
+     * @return          the built uri as string.
+     */
+    private String getApiUri(int movieId, String category) {
+        Uri.Builder builder = new Uri.Builder();
+        builder.scheme(MainActivity.API_SCHEME)
+                .authority(MainActivity.API_AUTHORITY)
+                .appendPath(MainActivity.API_VERSION_PATH)
+                .appendPath(MainActivity.API_MOVIES_PATH)
+                .appendPath(String.valueOf(movieId))
+                .appendPath(category)
+                .appendQueryParameter(
+                        MainActivity.API_KEY_NAME, getString(R.string.TheMovieDb_API_KEY));
+        return builder.build().toString();
+    }
 
     //region 3rd Party Code
 

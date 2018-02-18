@@ -46,13 +46,13 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
     // ===== API URI VALUES =====
     public static final String MOVIE_POSTER_BASE_PATH = "http://image.tmdb.org/t/p/w185//";
 
-    private static final String API_SCHEME = "http";
-    private static final String API_AUTHORITY = "api.themoviedb.org";
-    private static final String API_VERSION_PATH = "3";
-    private static final String API_MOVIES_PATH = "movie";
-    private static final String POPULAR_API_PATH = "popular";
-    private static final String TOP_RATED_API_PATH = "top_rated";
-    private static final String API_KEY_NAME = "api_key";
+    public static final String API_SCHEME = "http";
+    public static final String API_AUTHORITY = "api.themoviedb.org";
+    public static final String API_VERSION_PATH = "3";
+    public static final String API_MOVIES_PATH = "movie";
+    public static final String POPULAR_API_PATH = "popular";
+    public static final String TOP_RATED_API_PATH = "top_rated";
+    public static final String API_KEY_NAME = "api_key";
 
     // =====     WIDGETS      =====
     @BindView(R.id.movie_list_rv)
@@ -81,7 +81,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
             @Override
             public void onClick(View view) {
                 showLoading();
-                queueStringRequest(mLoadingPath);
+                queueJsonRequest(mLoadingPath);
             }
         });
 
@@ -95,7 +95,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
             mLoadingPath = POPULAR_API_PATH;
         }
         showLoading();
-        queueStringRequest(mLoadingPath);
+        queueJsonRequest(mLoadingPath);
     }
 
     /**
@@ -138,7 +138,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         if (item.getItemId() == R.id.action_sort_order) {
             toggleSortOrder(item);
             showLoading();
-            queueStringRequest(mLoadingPath);
+            queueJsonRequest(mLoadingPath);
             return true;
         }
 
@@ -227,7 +227,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
      *
      * @param apiPath   the api path to the selected sort-order.
      */
-    private void queueStringRequest(String apiPath) {
+    private void queueJsonRequest(String apiPath) {
         String apiUri = getApiUri(apiPath);
 
         JsonObjectRequest request = new JsonObjectRequest(

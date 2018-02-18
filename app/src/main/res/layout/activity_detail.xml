@@ -70,69 +70,7 @@
         android:clipToPadding="false"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <android.support.constraint.ConstraintLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-            <android.support.constraint.Guideline
-                android:id="@+id/poster_to_info_guideline"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                app:layout_constraintGuide_percent="0.5" />
-
-            <ImageView
-                android:id="@+id/movie_poster_iv"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/movie_poster_margin"
-                android:layout_marginStart="@dimen/movie_poster_margin"
-                android:layout_marginTop="8dp"
-                android:adjustViewBounds="true"
-                android:contentDescription="@string/movie_poster_content_description"
-                android:cropToPadding="true"
-                app:layout_constraintEnd_toStartOf="@+id/poster_to_info_guideline"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:srcCompat="@drawable/ic_launcher_background" />
-
-            <TextView
-                android:id="@+id/release_date_tv"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="@dimen/release_date_margin"
-                android:layout_marginTop="32dp"
-                android:textAppearance="@style/TextAppearance.AppCompat.Headline"
-                app:layout_constraintStart_toStartOf="@+id/poster_to_info_guideline"
-                app:layout_constraintTop_toTopOf="parent"
-                tools:text="Release Date" />
-
-            <TextView
-                android:id="@+id/average_vote_tv"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="@dimen/average_vote_margin"
-                android:layout_marginTop="@dimen/average_vote_margin"
-                android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-                app:layout_constraintStart_toStartOf="@+id/poster_to_info_guideline"
-                app:layout_constraintTop_toBottomOf="@+id/release_date_tv"
-                tools:text="Average Vote" />
-
-            <TextView
-                android:id="@+id/plot_synopsis_tv"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/synopsis_horizontal_margin"
-                android:layout_marginStart="@dimen/synopsis_horizontal_margin"
-                android:layout_marginTop="@dimen/synopsis_vertical_margin"
-                android:paddingBottom="@dimen/synopsis_bottom_padding"
-                android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/movie_poster_iv"
-                tools:text="Plot Synopsis" />
-
-        </android.support.constraint.ConstraintLayout>
+        <include layout="@layout/movie_detail" />
 
     </android.support.v4.widget.NestedScrollView>
 
