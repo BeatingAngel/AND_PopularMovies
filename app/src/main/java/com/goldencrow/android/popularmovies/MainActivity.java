@@ -53,8 +53,6 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
     private static final String POPULAR_API_PATH = "popular";
     private static final String TOP_RATED_API_PATH = "top_rated";
     private static final String API_KEY_NAME = "api_key";
-    private static final String API_KEY
-            = "";  // insert API-KEY from themoviedb.org HERE
 
     // =====     WIDGETS      =====
     @BindView(R.id.movie_list_rv)
@@ -268,12 +266,12 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
      * set up the RecyclerView with empty data.
      */
     private void initializeRecyclerView() {
-        GridLayoutManager layoutManager = new GridLayoutManager(this, GRID_SPAN_SIZE);
+        GridLayoutManager gridLayoutManager = new GridLayoutManager(this, GRID_SPAN_SIZE);
 
         mAdapter = new MovieAdapter(this, this);
         mMoviesListRv.setAdapter(mAdapter);
 
-        mMoviesListRv.setLayoutManager(layoutManager);
+        mMoviesListRv.setLayoutManager(gridLayoutManager);
         mMoviesListRv.setHasFixedSize(true);
     }
 
@@ -290,7 +288,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
                 .appendPath(API_VERSION_PATH)
                 .appendPath(API_MOVIES_PATH)
                 .appendPath(apiPath)
-                .appendQueryParameter(API_KEY_NAME, API_KEY);
+                .appendQueryParameter(API_KEY_NAME, getString(R.string.TheMovieDb_API_KEY));
         return builder.build().toString();
     }
 }

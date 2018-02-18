@@ -7,4 +7,5 @@ The posters can be sorted by popularity or ratings.
 A click on a poster shows the details of the movie.
 
 ## How to run it?
-Insert a API-Key in the MainActivity.java into the API_KEY field.
+Insert a API-Key in api_keys.xml file into the TheMovieDb_API_KEY field.
+This file is located inside the resource/values-folder
