@@ -21,4 +21,6 @@
     <string name="backdrop_image_desc">Image background for the collapsing toolbar</string>
     <string name="action_reviews">See reviews</string>
     <string name="action_favorite">favorite</string>
+    <string name="trailers">Trailers:</string>
+    <string name="reviews">Reviews:</string>
 </resources>

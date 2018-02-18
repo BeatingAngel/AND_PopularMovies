@@ -5,4 +5,5 @@
     <color name="colorAccent">#FF4081</color>
 
     <color name="error">#ff3300</color>
+    <color name="review_background">#d2cdcb</color>
 </resources>

@@ -27,6 +27,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.goldencrow.android.popularmovies.entities.Movie;
+import com.goldencrow.android.popularmovies.entities.Review;
 import com.goldencrow.android.popularmovies.entities.Trailer;
 import com.google.gson.Gson;
 import com.squareup.picasso.Picasso;
@@ -42,7 +43,10 @@ import butterknife.ButterKnife;
 public class DetailActivity extends AppCompatActivity {
 
     public static final String INTENT_EXTRA_MOVIE_KEY = "movie";
-    public static final String TRAILER_JSON_KEY = "results";
+
+    private static final String TRAILER_JSON_KEY = "results";
+    private static final String TRAILER_API_KEY = "videos";
+    private static final String REVIEWS_API_KEY = "reviews";
 
     @BindView(R.id.movie_poster_iv)
     ImageView mMoviePosterIv;
@@ -52,8 +56,14 @@ public class DetailActivity extends AppCompatActivity {
     TextView mAverageVoteTv;
     @BindView(R.id.plot_synopsis_tv)
     TextView mPlotSynopsisTv;
+    @BindView(R.id.video_preview_tv)
+    TextView mTrailerTv;
     @BindView(R.id.trailer_container_ll)
     LinearLayout mTrailerContainerLl;
+    @BindView(R.id.reviews_tv)
+    TextView mReviewTv;
+    @BindView(R.id.reviews_container_ll)
+    LinearLayout mReviewsContainerLl;
 
     @BindView(R.id.toolbar)
     Toolbar mToolbar;
@@ -103,7 +113,8 @@ public class DetailActivity extends AppCompatActivity {
 
             mPlotSynopsisTv.setText(movie.getOverview());
 
-            queueJsonRequest(movie.getId(), "videos");
+            queueJsonRequest(movie.getId(), TRAILER_API_KEY);
+            queueJsonRequest(movie.getId(), REVIEWS_API_KEY);
         } else {
             mCollapsingToolbarLayout.setTitle(getString(R.string.error_movie_not_found));
             mMoviePosterIv.setVisibility(View.INVISIBLE);
@@ -130,9 +141,20 @@ public class DetailActivity extends AppCompatActivity {
                         Gson gson = new Gson();
                         try {
                             String jsonArrayMovies = jsonResponse.get(TRAILER_JSON_KEY).toString();
-                            if (category.toLowerCase().equals("videos")) {
+                            if (category.equals(TRAILER_API_KEY)) {
                                 Trailer[] trailers = gson.fromJson(jsonArrayMovies, Trailer[].class);
-                                displayTrailers(trailers);
+                                if (trailers.length > 0) {
+                                    displayTrailers(trailers);
+                                } else {
+                                    mTrailerTv.setVisibility(View.GONE);
+                                }
+                            } else if (category.equals(REVIEWS_API_KEY)) {
+                                Review[] reviews = gson.fromJson(jsonArrayMovies, Review[].class);
+                                if (reviews.length > 0) {
+                                    displayReviews(reviews);
+                                } else {
+                                    mReviewTv.setVisibility(View.GONE);
+                                }
                             }
                         } catch (JSONException e) {
                             // Error while parsing Json.
@@ -227,6 +249,41 @@ public class DetailActivity extends AppCompatActivity {
     }
 
     /**
+     * Displays all movie reviews on the screen.
+     *
+     * Not a nice way to display reviews, cards would be better.
+     * But this is simpler.
+     *
+     * @param reviews   the reviews to display.
+     */
+    private void displayReviews(Review[] reviews) {
+        LinearLayout trailerList = new LinearLayout(DetailActivity.this);
+        trailerList.setOrientation(LinearLayout.VERTICAL);
+        trailerList.setLayoutParams(new LayoutParams(
+                LayoutParams.MATCH_PARENT,
+                LayoutParams.WRAP_CONTENT));
+
+        for (Review review : reviews) {
+
+            TextView reviewTv = new TextView(DetailActivity.this);
+            LayoutParams params = new LayoutParams(
+                    LayoutParams.MATCH_PARENT,
+                    LayoutParams.WRAP_CONTENT);
+            params.setMargins(0,0,0,50);
+            reviewTv.setLayoutParams(params);
+            reviewTv.setPadding(10,10,10,10);
+
+            reviewTv.setBackgroundColor(getColor(R.color.review_background));
+            String reviewText = review.getAuthor() + "\n" + review.getContent();
+            reviewTv.setText(reviewText);
+
+            trailerList.addView(reviewTv);
+        }
+
+        mReviewsContainerLl.addView(trailerList);
+    }
+
+    /**
      * builds the Uri to themoviedb.org-API.
      *
      * @param movieId   the ID from the selected movie.
@@ -264,15 +321,10 @@ public class DetailActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_reviews) {
-            return true;
-        } else if (id == R.id.action_favorite) {
+        if (id == R.id.action_favorite) {
+            //TODO: favorite code here!
             return true;
         }
 
