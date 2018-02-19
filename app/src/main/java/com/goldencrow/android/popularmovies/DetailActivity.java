@@ -5,9 +5,13 @@
 
 package com.goldencrow.android.popularmovies;
 
+import android.content.ContentUris;
+import android.content.ContentValues;
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
 import android.support.design.widget.AppBarLayout;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
@@ -26,6 +30,7 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.goldencrow.android.popularmovies.data.Contracts;
 import com.goldencrow.android.popularmovies.entities.Movie;
 import com.goldencrow.android.popularmovies.entities.Review;
 import com.goldencrow.android.popularmovies.entities.Trailer;
@@ -47,6 +52,8 @@ public class DetailActivity extends AppCompatActivity {
     private static final String TRAILER_JSON_KEY = "results";
     private static final String TRAILER_API_KEY = "videos";
     private static final String REVIEWS_API_KEY = "reviews";
+
+    private static final String TRAILER_SITE_YOUTUBE = "youtube";
 
     @BindView(R.id.movie_poster_iv)
     ImageView mMoviePosterIv;
@@ -73,10 +80,16 @@ public class DetailActivity extends AppCompatActivity {
     CollapsingToolbarLayout mCollapsingToolbarLayout;
     @BindView(R.id.toolbar_iv)
     ImageView mToolbarIv;
+    @BindView(R.id.fab)
+    FloatingActionButton mFavoriteFaBtn;
 
     private Menu menu;
 
+    private Movie mMovie;
+    private Trailer mTrailer;
+
     private RequestQueue mQueue;
+    private boolean isFavorite = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,32 +105,67 @@ public class DetailActivity extends AppCompatActivity {
 
         Intent intent = getIntent();
         if (intent.hasExtra(INTENT_EXTRA_MOVIE_KEY)) {
-            Movie movie = intent.getParcelableExtra(INTENT_EXTRA_MOVIE_KEY);
+            mMovie = intent.getParcelableExtra(INTENT_EXTRA_MOVIE_KEY);
 
-            mCollapsingToolbarLayout.setTitle(movie.getTitle());
+            mCollapsingToolbarLayout.setTitle(mMovie.getTitle());
 
             Picasso.with(this)
-                    .load(MainActivity.MOVIE_POSTER_BASE_PATH + movie.getPosterPath())
+                    .load(MainActivity.MOVIE_POSTER_BASE_PATH + mMovie.getPosterPath())
                     .error(R.drawable.ic_launcher_background)
                     .into(mMoviePosterIv);
             Picasso.with(this)
-                    .load(MainActivity.MOVIE_POSTER_BASE_PATH + movie.getBackdrop_path())
+                    .load(MainActivity.MOVIE_POSTER_BASE_PATH + mMovie.getBackdrop_path())
                     .error(R.drawable.ic_launcher_background)
                     .into(mToolbarIv);
 
-            String releaseDateString = movie.getReleaseDateAsString();
+            String releaseDateString = mMovie.getReleaseDateAsString();
             mReleaseDateTv.setText(releaseDateString);
 
-            String averageVoteString = getString(R.string.vote_average, movie.getVoteAverage());
+            String averageVoteString = getString(R.string.vote_average, mMovie.getVoteAverage());
             mAverageVoteTv.setText(averageVoteString);
 
-            mPlotSynopsisTv.setText(movie.getOverview());
+            mPlotSynopsisTv.setText(mMovie.getOverview());
 
-            queueJsonRequest(movie.getId(), TRAILER_API_KEY);
-            queueJsonRequest(movie.getId(), REVIEWS_API_KEY);
+            queueJsonRequest(mMovie.getId(), TRAILER_API_KEY);
+            queueJsonRequest(mMovie.getId(), REVIEWS_API_KEY);
         } else {
             mCollapsingToolbarLayout.setTitle(getString(R.string.error_movie_not_found));
             mMoviePosterIv.setVisibility(View.INVISIBLE);
+        }
+
+        handleFavorite();
+    }
+
+    /**
+     * initializes the FavoriteButton with the code what should happen if a FavoriteBtn is clicked.
+     * It defines when a button inserts or deletes a entry from the DB.
+     */
+    private void handleFavorite() {
+        mFavoriteFaBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (isFavorite) {
+                    unfavoriteMovie();
+                } else {
+                    favoriteMovie();
+                }
+                isFavorite = !isFavorite;
+            }
+        });
+
+        Uri movieUri = ContentUris.withAppendedId(Contracts.MovieEntry.CONTENT_URI, mMovie.getId());
+        Cursor cursor = getContentResolver().query(movieUri,
+                null,
+                null,
+                null,
+                null);
+
+        if (cursor != null) {
+            if (cursor.getCount() > 0) {
+                mFavoriteFaBtn.setImageResource(android.R.drawable.btn_star_big_on);
+                isFavorite = true;
+            }
+            cursor.close();
         }
     }
 
@@ -144,6 +192,7 @@ public class DetailActivity extends AppCompatActivity {
                             if (category.equals(TRAILER_API_KEY)) {
                                 Trailer[] trailers = gson.fromJson(jsonArrayMovies, Trailer[].class);
                                 if (trailers.length > 0) {
+                                    mTrailer = trailers[0];
                                     displayTrailers(trailers);
                                 } else {
                                     mTrailerTv.setVisibility(View.GONE);
@@ -160,7 +209,7 @@ public class DetailActivity extends AppCompatActivity {
                             // Error while parsing Json.
                             Toast.makeText(
                                     DetailActivity.this,
-                                    "Error while parsing!",
+                                    R.string.error_while_parsing,
                                     Toast.LENGTH_SHORT).show();
                         }
                     }
@@ -171,7 +220,7 @@ public class DetailActivity extends AppCompatActivity {
                         // Video trailers could not be loaded
                         Toast.makeText(
                                 DetailActivity.this,
-                                "Could not retrieve data!",
+                                R.string.error_while_retrieving,
                                 Toast.LENGTH_SHORT).show();
                     }
                 });
@@ -225,16 +274,15 @@ public class DetailActivity extends AppCompatActivity {
 
         trailerPreviewIv.setImageResource(R.drawable.ic_launcher_foreground);
 
-        if (trailer.getSite().toLowerCase().equals("youtube")) {
+        if (trailer.getSite().toLowerCase().equals(TRAILER_SITE_YOUTUBE)) {
             Picasso.with(DetailActivity.this)
-                    .load("https://img.youtube.com/vi/"
-                            + trailer.getKey() + "/hqdefault.jpg")
+                    .load(getString(R.string.youtube_poster, trailer.getKey()))
                     .into(trailerPreviewIv);
 
             trailerPreviewIv.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    Uri trailerUri = Uri.parse("http://www.youtube.com/embed/" + trailer.getKey());
+                    Uri trailerUri = Uri.parse(getString(R.string.youtube_link, trailer.getKey()));
 
                     Intent youTubeIntent = new Intent(Intent.ACTION_VIEW, trailerUri);
 
@@ -303,6 +351,46 @@ public class DetailActivity extends AppCompatActivity {
         return builder.build().toString();
     }
 
+    /**
+     * Adds the current movie to the favorites. (inserts entry into DB).
+     */
+    private void favoriteMovie() {
+        ContentValues contentValues = new ContentValues();
+
+        contentValues.put(Contracts.MovieEntry._ID, mMovie.getId());
+        contentValues.put(Contracts.MovieEntry.COLUMN_VOTE_AVERAGE, mMovie.getVoteAverage());
+        contentValues.put(Contracts.MovieEntry.COLUMN_TITLE, mMovie.getTitle());
+        contentValues.put(Contracts.MovieEntry.COLUMN_POSTER_PATH, mMovie.getPosterPath());
+        contentValues.put(Contracts.MovieEntry.COLUMN_BACKDROP_PATH, mMovie.getBackdrop_path());
+        contentValues.put(Contracts.MovieEntry.COLUMN_OVERVIEW, mMovie.getOverview());
+        contentValues.put(Contracts.MovieEntry.COLUMN_RELEASE_DATE, mMovie.getReleaseDateAsString());
+
+        Uri uri = getContentResolver().insert(Contracts.MovieEntry.CONTENT_URI, contentValues);
+
+        if(uri != null) {
+            Toast.makeText(this, R.string.added_favorites, Toast.LENGTH_SHORT).show();
+            mFavoriteFaBtn.setImageResource(android.R.drawable.btn_star_big_on);
+            menu.findItem(R.id.action_favorite).setIcon(getDrawable(android.R.drawable.btn_star_big_on));
+        }
+    }
+
+    /**
+     * Removes the current movie from the Favorites. (removes the entry from the DB).
+     */
+    private void unfavoriteMovie() {
+        Uri toDelete = ContentUris.withAppendedId(Contracts.MovieEntry.CONTENT_URI, mMovie.getId());
+        int deleted = getContentResolver().delete(toDelete, null, null);
+
+        if(deleted > 0) {
+            Toast.makeText(this, R.string.removed_favorites, Toast.LENGTH_SHORT).show();
+            mFavoriteFaBtn.setImageResource(android.R.drawable.btn_star_big_off);
+            menu.findItem(R.id.action_favorite).setIcon(getDrawable(android.R.drawable.btn_star_big_off));
+        } else {
+            Toast.makeText(this, R.string.could_not_remove_favorite,
+                    Toast.LENGTH_SHORT).show();
+        }
+    }
+
     //region 3rd Party Code
 
     // ================================
@@ -316,6 +404,9 @@ public class DetailActivity extends AppCompatActivity {
         this.menu = menu;
         getMenuInflater().inflate(R.menu.menu_scrolling, menu);
         hideOption(R.id.action_favorite);
+        if (isFavorite) {
+            this.menu.findItem(R.id.action_favorite).setIcon(getDrawable(android.R.drawable.btn_star_big_on));
+        }
         return true;
     }
 
@@ -324,8 +415,23 @@ public class DetailActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         if (id == R.id.action_favorite) {
-            //TODO: favorite code here!
+            if (isFavorite) {
+                unfavoriteMovie();
+            } else {
+                favoriteMovie();
+            }
+            isFavorite = !isFavorite;
             return true;
+        } else if (id == R.id.action_share_trailer
+                && mTrailer.getSite().toLowerCase().equals(TRAILER_SITE_YOUTUBE)) {
+            Intent shareIntent = new Intent();
+            shareIntent.setAction(Intent.ACTION_SEND);
+            shareIntent.putExtra(Intent.EXTRA_TEXT,
+                    getString(R.string.link_share_text, mMovie.getTitle(), mTrailer.getKey()));
+            shareIntent.setType("text/plain");
+            startActivity(Intent.createChooser(
+                    shareIntent,
+                    getString(R.string.link_share_title)));
         }
 
         return super.onOptionsItemSelected(item);

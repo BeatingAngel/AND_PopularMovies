@@ -31,6 +31,12 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.goldencrow.android.popularmovies.MainActivity" />
         </activity>
+
+        <provider
+            android:name="com.goldencrow.android.popularmovies.data.MoviesContentProvider"
+            android:authorities="com.goldencrow.android.popularmovies"
+            android:exported="false"/>
+
     </application>
 
 </manifest>

@@ -15,4 +15,16 @@
     
     <dimen name="margin_to_middle">8dp</dimen>
     <dimen name="progress_bar_size">42dp</dimen>
+    <dimen name="movie_card_title_bottom_margin">8dp</dimen>
+    <dimen name="movie_card_horizontal_margin">16dp</dimen>
+    <dimen name="release_date_top_margin">32dp</dimen>
+    <dimen name="divider_bottom_margin">8dp</dimen>
+    <dimen name="container_header_horizontal_margin">16dp</dimen>
+    <dimen name="container_header_top_margin">8dp</dimen>
+    <dimen name="container_margin">16dp</dimen>
+    <dimen name="collapsing_toolbar_start_margin">48dp</dimen>
+    <dimen name="collapsing_toolbar_end_margin">64dp</dimen>
+    <dimen name="collapsing_toolbar_image_height">200dp</dimen>
+    <dimen name="fab_margin">8dp</dimen>
+    <dimen name="fab_elevation">5dp</dimen>
 </resources>

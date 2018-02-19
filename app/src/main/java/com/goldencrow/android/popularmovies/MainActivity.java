@@ -6,6 +6,7 @@
 package com.goldencrow.android.popularmovies;
 
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -18,6 +19,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -25,11 +27,15 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.goldencrow.android.popularmovies.data.Contracts;
 import com.goldencrow.android.popularmovies.entities.Movie;
 import com.google.gson.Gson;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.LinkedList;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -135,14 +141,73 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
 
-        if (item.getItemId() == R.id.action_sort_order) {
+        int id = item.getItemId();
+
+        if (id == R.id.action_sort_order) {
             toggleSortOrder(item);
             showLoading();
             queueJsonRequest(mLoadingPath);
             return true;
+        } else if (id == R.id.action_show_favorite) {
+            showLoading();
+            displayFavorites();
+            return true;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    /**
+     * retrieves the Favorite Movies from the SQLite Database and displays them.
+     * If nothing could be retrieved, then an error message will show.
+     */
+    private void displayFavorites() {
+        Cursor cursor = getContentResolver().query(Contracts.MovieEntry.CONTENT_URI,
+                null,
+                null,
+                null,
+                null);
+
+        if (cursor != null) {
+            int movieIdIndex = cursor.getColumnIndex(Contracts.MovieEntry._ID);
+            int movieAvgVoteIndex = cursor.getColumnIndex(Contracts.MovieEntry.COLUMN_VOTE_AVERAGE);
+            int movieTitleIndex = cursor.getColumnIndex(Contracts.MovieEntry.COLUMN_TITLE);
+            int moviePosterIndex = cursor.getColumnIndex(Contracts.MovieEntry.COLUMN_POSTER_PATH);
+            int movieBackdropIndex = cursor.getColumnIndex(Contracts.MovieEntry.COLUMN_BACKDROP_PATH);
+            int movieOverviewIndex = cursor.getColumnIndex(Contracts.MovieEntry.COLUMN_OVERVIEW);
+            int movieReleaseIndex = cursor.getColumnIndex(Contracts.MovieEntry.COLUMN_RELEASE_DATE);
+
+            cursor.moveToFirst();
+            List<Movie> movies = new LinkedList<>();
+            while (!cursor.isAfterLast()) {
+                Movie movie = new Movie(
+                        cursor.getInt(movieIdIndex),
+                        cursor.getFloat(movieAvgVoteIndex),
+                        cursor.getString(movieTitleIndex),
+                        cursor.getString(moviePosterIndex),
+                        cursor.getString(movieBackdropIndex),
+                        cursor.getString(movieOverviewIndex),
+                        cursor.getString(movieReleaseIndex)
+                );
+                movies.add(movie);
+                cursor.moveToNext();
+            }
+            cursor.close();
+
+            Movie[] arrayMovies = new Movie[movies.size()];
+            arrayMovies = movies.toArray(arrayMovies);
+
+            mAdapter.setMovieData(arrayMovies);
+
+            if (arrayMovies.length == 0) {
+                Toast.makeText(this, R.string.no_favorites, Toast.LENGTH_SHORT).show();
+            }
+        } else {
+            Toast.makeText(this,
+                    R.string.could_not_retrieve_favorites, Toast.LENGTH_SHORT).show();
+        }
+
+        showData();
     }
 
     /**

@@ -9,6 +9,8 @@
     <!-- ===== MENU ITEMS ===== -->
     <string name="action_sort_ratings">Order by ratings (desc)</string>
     <string name="action_sort_popularity">Order by popularity (desc)</string>
+    <string name="action_share_trailer">Share first trailer</string>
+    <string name="action_favorite">favorite</string>
 
     <!-- ===== TEXT MESSAGES ===== -->
     <string name="error_message_parsing_json">Movie data could not be read!</string>
@@ -16,11 +18,21 @@
         An error occurred while connecting to themovieDB-API!\nPlease check your network connection!
     </string>
     <string name="error_movie_not_found">Movie not found!</string>
+    <string name="error_while_parsing">Error while parsing!</string>
+    <string name="error_while_retrieving">Could not retrieve data!</string>
 
     <string name="vote_average">Rating: %1$.1f/10</string>
     <string name="backdrop_image_desc">Image background for the collapsing toolbar</string>
-    <string name="action_reviews">See reviews</string>
-    <string name="action_favorite">favorite</string>
     <string name="trailers">Trailers:</string>
     <string name="reviews">Reviews:</string>
+    <string name="show_favorites">Show favorites</string>
+    <string name="youtube_poster">https://img.youtube.com/vi/%1s/hqdefault.jpg</string>
+    <string name="youtube_link">http://www.youtube.com/embed/%1s</string>
+    <string name="added_favorites">Added to favorites!</string>
+    <string name="removed_favorites">Removed from favorites!</string>
+    <string name="could_not_remove_favorite">Could not remove favorite!</string>
+    <string name="link_share_title">Share movie trailer with:</string>
+    <string name="link_share_text">Have a look at the movie trailer from %1s \n http://www.youtube.com/embed/%2s</string>
+    <string name="no_favorites">No favorites exist!</string>
+    <string name="could_not_retrieve_favorites">Could not retrieve favorites!</string>
 </resources>
