@@ -4,7 +4,6 @@
     <!-- ===== FOR WIDGETS ===== -->
     <string name="movie_poster_content_description">Poster of the movie</string>
     <string name="retry">Retry</string>
-    <string name="background_movie_title">background for the movie title</string>
 
     <!-- ===== MENU ITEMS ===== -->
     <string name="action_sort_ratings">Order by ratings (desc)</string>

@@ -16,8 +16,8 @@ import android.support.annotation.Nullable;
  */
 public class MoviesContentProvider extends ContentProvider {
 
-    public static final int MOVIES = 100;
-    public static final int MOVIE_WITH_ID = 101;
+    private static final int MOVIES = 100;
+    private static final int MOVIE_WITH_ID = 101;
 
     private static final UriMatcher sUriMatcher = buildUriMatcher();
 

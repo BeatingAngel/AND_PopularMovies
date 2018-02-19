@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <dimen name="responsive_size">0dp</dimen>
-    <dimen name="movie_title_horizontal_margin">16dp</dimen>
-    <dimen name="movie_title_vertical_padding">16dp</dimen>
     <dimen name="movie_poster_margin">8dp</dimen>
     <dimen name="release_date_margin">8dp</dimen>
     <dimen name="average_vote_margin">8dp</dimen>

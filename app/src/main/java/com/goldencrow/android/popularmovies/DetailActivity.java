@@ -403,7 +403,7 @@ public class DetailActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         this.menu = menu;
         getMenuInflater().inflate(R.menu.menu_scrolling, menu);
-        hideOption(R.id.action_favorite);
+        hideFavoriteOption();
         if (isFavorite) {
             this.menu.findItem(R.id.action_favorite).setIcon(getDrawable(android.R.drawable.btn_star_big_on));
         }
@@ -456,22 +456,22 @@ public class DetailActivity extends AppCompatActivity {
                 }
                 if (scrollRange + verticalOffset == 0) {
                     isShow = true;
-                    showOption(R.id.action_favorite);
+                    showFavoriteOption();
                 } else if (isShow) {
                     isShow = false;
-                    hideOption(R.id.action_favorite);
+                    hideFavoriteOption();
                 }
             }
         });
     }
 
-    private void hideOption(int id) {
-        MenuItem item = menu.findItem(id);
+    private void hideFavoriteOption() {
+        MenuItem item = menu.findItem(R.id.action_favorite);
         item.setVisible(false);
     }
 
-    private void showOption(int id) {
-        MenuItem item = menu.findItem(id);
+    private void showFavoriteOption() {
+        MenuItem item = menu.findItem(R.id.action_favorite);
         item.setVisible(true);
     }
 

@@ -18,9 +18,6 @@ import android.widget.TextView;
 import com.goldencrow.android.popularmovies.entities.Movie;
 import com.squareup.picasso.Picasso;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-
 public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHolder> {
 
     private final Context mContext;
