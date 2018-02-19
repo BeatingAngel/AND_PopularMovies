@@ -177,6 +177,8 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
             int movieOverviewIndex = cursor.getColumnIndex(Contracts.MovieEntry.COLUMN_OVERVIEW);
             int movieReleaseIndex = cursor.getColumnIndex(Contracts.MovieEntry.COLUMN_RELEASE_DATE);
 
+            // Because the RecyclerView-Adapter is used with a Array, I have to convert the
+            // Cursor to an array to pass the data to the Adapter.
             cursor.moveToFirst();
             List<Movie> movies = new LinkedList<>();
             while (!cursor.isAfterLast()) {

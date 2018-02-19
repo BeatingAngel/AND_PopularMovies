@@ -437,6 +437,11 @@ public class DetailActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    /**
+     * Initialized the ActionBar.
+     * If the ActionBar was scrolled enough, then hide the FloatingButton and
+     * show the ActionButton in the ToolBar instead.
+     */
     private void materializeAppBar() {
         setSupportActionBar(mToolbar);
 
@@ -465,11 +470,17 @@ public class DetailActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Hides the ActionButton in the ToolBar.
+     */
     private void hideFavoriteOption() {
         MenuItem item = menu.findItem(R.id.action_favorite);
         item.setVisible(false);
     }
 
+    /**
+     * Displays the ActionButton in the ToolBar.
+     */
     private void showFavoriteOption() {
         MenuItem item = menu.findItem(R.id.action_favorite);
         item.setVisible(true);

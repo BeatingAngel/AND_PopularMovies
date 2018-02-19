@@ -76,7 +76,8 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
             @Override
             public void onImageLoadFailed(Picasso picasso, Uri uri, Exception exception) {
                 // quick solution for offline mode:
-                // if offline and an image can't be displayed -> display the title.
+                // if offline and an image can't be displayed -> display the title instead.
+                // At least this way the covers will differ from one another in the offline mode.
                 holder.mMovieTitleTv.setText(movie.getTitle());
                 holder.mMovieTitleTv.setVisibility(View.VISIBLE);
             }

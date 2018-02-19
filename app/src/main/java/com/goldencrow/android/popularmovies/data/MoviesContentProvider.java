@@ -21,6 +21,11 @@ public class MoviesContentProvider extends ContentProvider {
 
     private static final UriMatcher sUriMatcher = buildUriMatcher();
 
+    /**
+     * builds the UriMatcher which return the matching number for the provided Uri.
+     *
+     * @return  the built UriMatcher.
+     */
     private static UriMatcher buildUriMatcher() {
 
         UriMatcher uriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
