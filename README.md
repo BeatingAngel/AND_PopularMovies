@@ -4,7 +4,12 @@ This project is made for the Udacity/Google Android Nanodegree course.
 ## Project Overview
 Displaying movie posters on the main page in a GridView.  
 The posters can be sorted by popularity or ratings.  
-A click on a poster shows the details of the movie.
+A click on a poster shows the details of the movie.  
+The detail page has trailers and reviews.  
+There is also a "favorite"-Button.  
+The homePage can be filter to Favorite Movies.  
+Favorite movies info is also available offline.  
+The first trailer of a selected movie can be shared.  
 
 Home screen                |  Detail screen            | Scrolled detail screen
 :-------------------------:|:-------------------------:|:-------------------------:
