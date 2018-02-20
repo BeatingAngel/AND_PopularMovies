@@ -163,6 +163,7 @@ public class DetailActivity extends AppCompatActivity {
         if (cursor != null) {
             if (cursor.getCount() > 0) {
                 mFavoriteFaBtn.setImageResource(android.R.drawable.btn_star_big_on);
+                menu.findItem(R.id.action_favorite).setIcon(getDrawable(android.R.drawable.btn_star_big_on));
                 isFavorite = true;
             }
             cursor.close();
