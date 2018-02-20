@@ -10,12 +10,10 @@ import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.PersistableBundle;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
-import android.support.v4.view.ViewCompat;
 import android.support.v4.widget.NestedScrollView;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -50,6 +48,8 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 
 public class DetailActivity extends AppCompatActivity {
+
+    private static final String BACKDROP_POSTER_PATH = "http://image.tmdb.org/t/p/w500//";
 
     public static final String INTENT_EXTRA_MOVIE_KEY = "movie";
 
@@ -123,10 +123,12 @@ public class DetailActivity extends AppCompatActivity {
             Picasso.with(this)
                     .load(MainActivity.MOVIE_POSTER_BASE_PATH + mMovie.getPosterPath())
                     .error(R.drawable.ic_launcher_background)
+                    .resize(480, 720)
                     .into(mMoviePosterIv);
             Picasso.with(this)
-                    .load(MainActivity.MOVIE_POSTER_BASE_PATH + mMovie.getBackdrop_path())
+                    .load(BACKDROP_POSTER_PATH + mMovie.getBackdrop_path())
                     .error(R.drawable.ic_launcher_background)
+                    .resize(720, 480)
                     .into(mToolbarIv);
 
             String releaseDateString = mMovie.getReleaseDateAsString();
@@ -294,6 +296,7 @@ public class DetailActivity extends AppCompatActivity {
                     LayoutParams.MATCH_PARENT,
                     LayoutParams.WRAP_CONTENT));
             trailerNameTv.setText(getString(R.string.play_trailer_text, trailer.getName()));
+            trailerNameTv.setPadding(0,25,0, 25);
 
             trailerNameTv.setOnClickListener(new View.OnClickListener() {
                 @Override

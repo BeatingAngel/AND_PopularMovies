@@ -75,6 +75,8 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
         Picasso.with(mContext)
                 .load(MainActivity.MOVIE_POSTER_BASE_PATH + movie.getPosterPath())
                 .error(R.drawable.ic_launcher_background)
+                .resize(480, 720)
+                .centerCrop()
                 .into(holder.mMoviePosterIv, new Callback() {
                     @Override
                     public void onSuccess() {
