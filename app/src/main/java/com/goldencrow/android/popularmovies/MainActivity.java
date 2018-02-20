@@ -8,9 +8,12 @@ package com.goldencrow.android.popularmovies;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Handler;
+import android.os.Parcelable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -27,6 +30,7 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.goldencrow.android.popularmovies.customUIs.StatefulRecyclerView;
 import com.goldencrow.android.popularmovies.data.Contracts;
 import com.goldencrow.android.popularmovies.entities.Movie;
 import com.google.gson.Gson;
@@ -34,6 +38,7 @@ import com.google.gson.Gson;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -62,7 +67,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
 
     // =====     WIDGETS      =====
     @BindView(R.id.movie_list_rv)
-    RecyclerView mMoviesListRv;
+    StatefulRecyclerView mMoviesListRv;
     @BindView(R.id.loading_indicator_pb)
     ProgressBar mLoadingIndicatorPb;
     @BindView(R.id.error_message_tf)
@@ -99,9 +104,9 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
             mLoadingPath = savedInstanceState.getString(STATE_SORT_ORDER_KEY, POPULAR_API_PATH);
         } else {
             mLoadingPath = POPULAR_API_PATH;
+            showLoading();
+            queueJsonRequest(mLoadingPath);
         }
-        showLoading();
-        queueJsonRequest(mLoadingPath);
     }
 
     /**
@@ -111,9 +116,9 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
      */
     @Override
     public void onSaveInstanceState(Bundle outState) {
-        outState.putString(STATE_SORT_ORDER_KEY, mLoadingPath);
-
         super.onSaveInstanceState(outState);
+
+        outState.putString(STATE_SORT_ORDER_KEY, mLoadingPath);
     }
 
     /**

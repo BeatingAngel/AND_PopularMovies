@@ -12,6 +12,8 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
+import android.support.v4.widget.NestedScrollView;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
@@ -22,7 +24,6 @@ import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.TextView;
 import android.support.v7.widget.Toolbar;
-import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -82,6 +83,8 @@ public class DetailActivity extends AppCompatActivity {
     ImageView mToolbarIv;
     @BindView(R.id.fab)
     FloatingActionButton mFavoriteFaBtn;
+    @BindView(R.id.nested_scroll_view)
+    NestedScrollView mDetailNsv;
 
     private Menu menu;
 
@@ -207,10 +210,10 @@ public class DetailActivity extends AppCompatActivity {
                             }
                         } catch (JSONException e) {
                             // Error while parsing Json.
-                            Toast.makeText(
-                                    DetailActivity.this,
+                            Snackbar.make(
+                                    mDetailNsv,
                                     R.string.error_while_parsing,
-                                    Toast.LENGTH_SHORT).show();
+                                    Snackbar.LENGTH_SHORT).show();
                         }
                     }
                 },
@@ -218,10 +221,10 @@ public class DetailActivity extends AppCompatActivity {
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         // Video trailers could not be loaded
-                        Toast.makeText(
-                                DetailActivity.this,
+                        Snackbar.make(
+                                mDetailNsv,
                                 R.string.error_while_retrieving,
-                                Toast.LENGTH_SHORT).show();
+                                Snackbar.LENGTH_SHORT).show();
                     }
                 });
 
@@ -368,7 +371,7 @@ public class DetailActivity extends AppCompatActivity {
         Uri uri = getContentResolver().insert(Contracts.MovieEntry.CONTENT_URI, contentValues);
 
         if(uri != null) {
-            Toast.makeText(this, R.string.added_favorites, Toast.LENGTH_SHORT).show();
+            Snackbar.make(mDetailNsv, R.string.added_favorites, Snackbar.LENGTH_SHORT).show();
             mFavoriteFaBtn.setImageResource(android.R.drawable.btn_star_big_on);
             menu.findItem(R.id.action_favorite).setIcon(getDrawable(android.R.drawable.btn_star_big_on));
         }
@@ -382,12 +385,12 @@ public class DetailActivity extends AppCompatActivity {
         int deleted = getContentResolver().delete(toDelete, null, null);
 
         if(deleted > 0) {
-            Toast.makeText(this, R.string.removed_favorites, Toast.LENGTH_SHORT).show();
+            Snackbar.make(mDetailNsv, R.string.removed_favorites, Snackbar.LENGTH_SHORT).show();
             mFavoriteFaBtn.setImageResource(android.R.drawable.btn_star_big_off);
             menu.findItem(R.id.action_favorite).setIcon(getDrawable(android.R.drawable.btn_star_big_off));
         } else {
-            Toast.makeText(this, R.string.could_not_remove_favorite,
-                    Toast.LENGTH_SHORT).show();
+            Snackbar.make(mDetailNsv, R.string.could_not_remove_favorite,
+                    Snackbar.LENGTH_SHORT).show();
         }
     }
 

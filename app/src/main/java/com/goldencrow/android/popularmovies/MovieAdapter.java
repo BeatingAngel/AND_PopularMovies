@@ -104,9 +104,18 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
      *
      * @param movies    to display in the grid.
      */
-    void setMovieData(Movie[] movies) {
+    public void setMovieData(Movie[] movies) {
         mMovies = movies;
         notifyDataSetChanged();
+    }
+
+    /**
+     * returns the currently displayed movies.
+     *
+     * @return  the displayed movie array.
+     */
+    public Movie[] getMovieData() {
+        return mMovies;
     }
 
     /**
