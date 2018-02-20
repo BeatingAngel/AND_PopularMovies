@@ -10,9 +10,12 @@ import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.PersistableBundle;
 import android.support.design.widget.AppBarLayout;
+import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.view.ViewCompat;
 import android.support.v4.widget.NestedScrollView;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -85,6 +88,8 @@ public class DetailActivity extends AppCompatActivity {
     FloatingActionButton mFavoriteFaBtn;
     @BindView(R.id.nested_scroll_view)
     NestedScrollView mDetailNsv;
+    @BindView(R.id.coordinator)
+    CoordinatorLayout mCoordinatorL;
 
     private Menu menu;
 
@@ -93,6 +98,9 @@ public class DetailActivity extends AppCompatActivity {
 
     private RequestQueue mQueue;
     private boolean isFavorite = false;
+
+    private int mNestedX;
+    private int mNestedY;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -137,6 +145,34 @@ public class DetailActivity extends AppCompatActivity {
         }
 
         handleFavorite();
+    }
+
+    /**
+     * Save the scroll-position from the NestedScrollView to reapply it after device rotation.
+     *
+     * @param outState  the bundle where the variables will be put into.
+     */
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        int xScroll = mDetailNsv.getScrollX();
+        outState.putInt("xScN", xScroll);
+        int yScroll = mDetailNsv.getScrollY();
+        outState.putInt("yScN", yScroll);
+    }
+
+    /**
+     * Retrieve the saved scroll-position for later usage.
+     *
+     * @param savedInstanceState    the saved variables.
+     */
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+
+        mNestedX = savedInstanceState.getInt("xScN");
+        mNestedY = savedInstanceState.getInt("yScN");
     }
 
     /**
@@ -215,6 +251,14 @@ public class DetailActivity extends AppCompatActivity {
                                     R.string.error_while_parsing,
                                     Snackbar.LENGTH_SHORT).show();
                         }
+
+                        //NOTE: the scrollTo-method doesn't work in MainThread!!
+                        mDetailNsv.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                mDetailNsv.scrollTo(mNestedX, mNestedY);
+                            }
+                        });
                     }
                 },
                 new Response.ErrorListener() {
@@ -244,17 +288,32 @@ public class DetailActivity extends AppCompatActivity {
                 LayoutParams.MATCH_PARENT,
                 LayoutParams.WRAP_CONTENT));
 
-        for (Trailer trailer : trailers) {
-            ImageView trailerPreviewIv = createTrailer(trailer);
-
+        for (final Trailer trailer : trailers) {
             TextView trailerNameTv = new TextView(DetailActivity.this);
             trailerNameTv.setLayoutParams(new LayoutParams(
                     LayoutParams.MATCH_PARENT,
                     LayoutParams.WRAP_CONTENT));
-            trailerNameTv.setText(trailer.getName());
+            trailerNameTv.setText(getString(R.string.play_trailer_text, trailer.getName()));
+
+            trailerNameTv.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Uri trailerUri = Uri.parse(getString(R.string.youtube_link, trailer.getKey()));
+
+                    Intent youTubeIntent = new Intent(Intent.ACTION_VIEW, trailerUri);
+
+                    if (youTubeIntent.resolveActivity(getPackageManager()) != null) {
+                        startActivity(youTubeIntent);
+                    }
+                }
+            });
 
             trailerList.addView(trailerNameTv);
-            trailerList.addView(trailerPreviewIv);
+
+            // The scrollPosition after rotating device is wrong if images are in it.
+            // TODO: search for a solution for the scroll and de-comment this block
+            //ImageView trailerPreviewIv = createTrailer(trailer);
+            //trailerList.addView(trailerPreviewIv);
         }
 
         mTrailerContainerLl.addView(trailerList);
@@ -266,12 +325,13 @@ public class DetailActivity extends AppCompatActivity {
      * @param trailer   the trailer-object from which a ImageView will be generated.
      * @return          the imageView widget.
      */
+    @Deprecated
     private ImageView createTrailer(final Trailer trailer) {
         ImageView trailerPreviewIv =
                 new ImageView(DetailActivity.this);
         trailerPreviewIv.setLayoutParams(new LayoutParams(
-                LayoutParams.MATCH_PARENT,
-                LayoutParams.WRAP_CONTENT));
+                LayoutParams.WRAP_CONTENT,
+                400));
         trailerPreviewIv.setAdjustViewBounds(true);
         trailerPreviewIv.setPadding(0,0,0, 25);
 
@@ -477,16 +537,20 @@ public class DetailActivity extends AppCompatActivity {
      * Hides the ActionButton in the ToolBar.
      */
     private void hideFavoriteOption() {
-        MenuItem item = menu.findItem(R.id.action_favorite);
-        item.setVisible(false);
+        if (menu != null) {
+            MenuItem item = menu.findItem(R.id.action_favorite);
+            item.setVisible(false);
+        }
     }
 
     /**
      * Displays the ActionButton in the ToolBar.
      */
     private void showFavoriteOption() {
-        MenuItem item = menu.findItem(R.id.action_favorite);
-        item.setVisible(true);
+        if (menu != null) {
+            MenuItem item = menu.findItem(R.id.action_favorite);
+            item.setVisible(true);
+        }
     }
 
     // ================================

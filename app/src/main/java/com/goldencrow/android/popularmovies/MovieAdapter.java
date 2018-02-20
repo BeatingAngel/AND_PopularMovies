@@ -16,6 +16,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.goldencrow.android.popularmovies.entities.Movie;
+import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 
 public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHolder> {
@@ -71,22 +72,24 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
     public void onBindViewHolder(final MovieViewHolder holder, int position) {
         final Movie movie = mMovies[position];
 
-        Picasso.Builder builder = new Picasso.Builder(mContext);
-        builder.listener(new Picasso.Listener() {
-            @Override
-            public void onImageLoadFailed(Picasso picasso, Uri uri, Exception exception) {
-                // quick solution for offline mode:
-                // if offline and an image can't be displayed -> display the title instead.
-                // At least this way the covers will differ from one another in the offline mode.
-                holder.mMovieTitleTv.setText(movie.getTitle());
-                holder.mMovieTitleTv.setVisibility(View.VISIBLE);
-            }
-        });
-
-        builder.build()
+        Picasso.with(mContext)
                 .load(MainActivity.MOVIE_POSTER_BASE_PATH + movie.getPosterPath())
                 .error(R.drawable.ic_launcher_background)
-                .into(holder.mMoviePosterIv);
+                .into(holder.mMoviePosterIv, new Callback() {
+                    @Override
+                    public void onSuccess() {
+
+                    }
+
+                    @Override
+                    public void onError() {
+                        // quick solution for offline mode:
+                        // if offline and an image can't be displayed -> display the title instead.
+                        // At least this way the covers will differ from one another in the offline mode.
+                        holder.mMovieTitleTv.setText(movie.getTitle());
+                        holder.mMovieTitleTv.setVisibility(View.VISIBLE);
+                    }
+                });
     }
 
     /**

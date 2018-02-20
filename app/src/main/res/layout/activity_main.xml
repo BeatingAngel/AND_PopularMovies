@@ -8,7 +8,7 @@
     android:layout_height="match_parent"
     tools:context="com.goldencrow.android.popularmovies.MainActivity">
 
-    <com.goldencrow.android.popularmovies.customUIs.StatefulRecyclerView
+    <android.support.v7.widget.RecyclerView
         android:id="@+id/movie_list_rv"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -18,7 +18,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-    </com.goldencrow.android.popularmovies.customUIs.StatefulRecyclerView>
+    </android.support.v7.widget.RecyclerView>
 
     <TextView
         android:id="@+id/error_message_tf"

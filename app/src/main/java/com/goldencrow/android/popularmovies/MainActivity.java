@@ -8,8 +8,6 @@ package com.goldencrow.android.popularmovies;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.Handler;
-import android.os.Parcelable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
@@ -30,7 +28,6 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
-import com.goldencrow.android.popularmovies.customUIs.StatefulRecyclerView;
 import com.goldencrow.android.popularmovies.data.Contracts;
 import com.goldencrow.android.popularmovies.entities.Movie;
 import com.google.gson.Gson;
@@ -38,7 +35,6 @@ import com.google.gson.Gson;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -49,6 +45,8 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
 
     // =====     KEYS      =====
     private static final String STATE_SORT_ORDER_KEY = "sortOrder";
+    private static final String RESTORE_LIST_POSITION_KEY = "listPos";
+
     private static final String MOVIE_LIST_JSON_KEY = "results";
 
     // =====    VALUES     =====
@@ -67,7 +65,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
 
     // =====     WIDGETS      =====
     @BindView(R.id.movie_list_rv)
-    StatefulRecyclerView mMoviesListRv;
+    RecyclerView mMoviesListRv;
     @BindView(R.id.loading_indicator_pb)
     ProgressBar mLoadingIndicatorPb;
     @BindView(R.id.error_message_tf)
@@ -79,6 +77,8 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
     private MovieAdapter mAdapter;
     private RequestQueue mQueue;
     private String mLoadingPath = null;
+
+    private int mRvPosition;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,13 +104,14 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
             mLoadingPath = savedInstanceState.getString(STATE_SORT_ORDER_KEY, POPULAR_API_PATH);
         } else {
             mLoadingPath = POPULAR_API_PATH;
-            showLoading();
-            queueJsonRequest(mLoadingPath);
         }
+        showLoading();
+        queueJsonRequest(mLoadingPath);
     }
 
     /**
      * Save the current sort-order to reapply it when the device was rotated.
+     * Also saves the current position from the List to reapply it later.
      *
      * @param outState              the bundle to save the data into.
      */
@@ -119,6 +120,21 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         super.onSaveInstanceState(outState);
 
         outState.putString(STATE_SORT_ORDER_KEY, mLoadingPath);
+        outState.putInt(RESTORE_LIST_POSITION_KEY,
+                ((LinearLayoutManager)mMoviesListRv.getLayoutManager())
+                        .findFirstVisibleItemPosition());
+    }
+
+    /**
+     * retrieves the last List-Position for later usage.
+     *
+     * @param savedInstanceState    the saved values.
+     */
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+
+        mRvPosition = savedInstanceState.getInt(RESTORE_LIST_POSITION_KEY);
     }
 
     /**
@@ -318,6 +334,12 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
                             mAdapter.setMovieData(movies);
 
                             showData();
+
+                            // after the data is displayed -> scroll to the correct position
+                            if (mRvPosition != 0) {
+                                ((GridLayoutManager)mMoviesListRv.getLayoutManager())
+                                        .scrollToPositionWithOffset(mRvPosition, 0);
+                            }
                         } catch (JSONException e) {
                             showErrorMessage(R.string.error_message_parsing_json);
                         }
@@ -344,7 +366,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         mMoviesListRv.setAdapter(mAdapter);
 
         mMoviesListRv.setLayoutManager(gridLayoutManager);
-        mMoviesListRv.setHasFixedSize(true);
+        //mMoviesListRv.setHasFixedSize(true);
     }
 
     /**

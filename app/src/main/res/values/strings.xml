@@ -34,4 +34,5 @@
     <string name="link_share_text">Have a look at the movie trailer from %1s \n http://www.youtube.com/embed/%2s</string>
     <string name="no_favorites">No favorites exist!</string>
     <string name="could_not_retrieve_favorites">Could not retrieve favorites!</string>
+    <string name="play_trailer_text">Play Trailer: %1s</string>
 </resources>
